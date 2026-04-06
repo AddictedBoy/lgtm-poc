@@ -1,0 +1,86 @@
+# Grafana Alloy for lgtm-poc
+# Traces -> Tempo, Metrics -> Mimir
+
+alloy:
+  extraPorts:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+      protocol: TCP
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+      protocol: TCP
+  configMap:
+    create: true
+    content: |
+      // ============================================
+      // OTLP Receiver - receives traces from apps
+      // ============================================
+      otelcol.receiver.otlp "default" {
+        grpc {
+          endpoint = "0.0.0.0:4317"
+        }
+        http {
+          endpoint = "0.0.0.0:4318"
+        }
+        output {
+          traces  = [otelcol.exporter.otlphttp.tempo.input]
+        }
+      }
+
+      // ============================================
+      // Traces -> Tempo (lgtm-poc)
+      // ============================================
+      otelcol.exporter.otlphttp "tempo" {
+        client {
+          endpoint = "http://tempo-poc.lgtm-poc.svc:4318"
+          tls {
+            insecure = true
+          }
+        }
+      }
+
+      // ============================================
+      // Metrics -> Mimir (observability)
+      // ============================================
+      prometheus.scrape "sample_traces_app" {
+        targets = [{
+          __address__ = "sample-traces-app.lgtm-poc.svc:8081",
+          job         = "sample-traces-app",
+        }]
+        forward_to = [prometheus.remote_write.mimir.receiver]
+        scrape_interval = "15s"
+      }
+
+      prometheus.remote_write "mimir" {
+        endpoint {
+          url = "http://lgtm-stack-mimir-gateway.observability.svc:80/api/v1/push"
+        }
+      }
+
+# Service for receiving OTLP data
+service:
+  type: ClusterIP
+
+# Controller runs as a Deployment
+controller:
+  type: deployment
+  replicas: 1
+
+# Resources
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# Service account for Kubernetes discovery
+serviceAccount:
+  create: true
+
+# RBAC for pod log collection
+rbac:
+  create: true

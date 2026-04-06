@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sample-traces-app
-  namespace: observability
+  namespace: lgtm-poc
   labels:
     app: sample-traces-app
 spec:
@@ -32,7 +32,7 @@ spec:
             - name: OTEL_SERVICE_NAME
               value: "sample-traces-app"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://alloy.observability.svc:4318"
+              value: "http://alloy-poc.lgtm-poc.svc:4318"
             - name: LOGS_APP_URL
               value: "http://sample-logs-app:8091"
             - name: METRICS_APP_URL
@@ -40,7 +40,7 @@ spec:
             - name: METRICS_PORT
               value: "9090"
             - name: POSTGRES_HOST
-              value: "postgres.observability.svc"
+              value: "postgres.lgtm-poc.svc"
             - name: POSTGRES_PORT
               value: "5432"
             - name: POSTGRES_USER
@@ -50,7 +50,7 @@ spec:
             - name: POSTGRES_DB
               value: "appdb"
             - name: REDIS_HOST
-              value: "redis.observability.svc"
+              value: "redis.lgtm-poc.svc"
             - name: REDIS_PORT
               value: "6379"
           resources:
@@ -77,7 +77,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: sample-traces-app
-  namespace: observability
+  namespace: lgtm-poc
 spec:
   type: ClusterIP
   ports:

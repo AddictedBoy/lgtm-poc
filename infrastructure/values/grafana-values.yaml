@@ -1,0 +1,37 @@
+# Grafana Configuration for lgtm-poc
+# This file is used by Helm to deploy Grafana with proper datasources
+
+admin:
+  user: admin
+  password: admin123
+
+featureToggles:
+  exploreHints: true
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+# Using init container to create provisioning files
+initChown:
+  enabled: false
+
+persistence:
+  enabled: false
+
+# Disable default datasources from helm chart
+sidecar:
+  datasources:
+    enabled: false
+  dashboards:
+    enabled: false
+
+# Resources
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
