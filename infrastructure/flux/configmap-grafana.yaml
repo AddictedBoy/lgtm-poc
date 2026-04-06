@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-values-poc
+  namespace: lgtm-poc
+data:
+  values.yaml: |
+    admin:
+      user: admin
+      password: admin123
+    featureToggles:
+      exploreHints: true
+    service:
+      type: ClusterIP
+      port: 80
+      targetPort: 3000
+    initChown:
+      enabled: false
+    persistence:
+      enabled: false
+    sidecar:
+      datasources:
+        enabled: false
+      dashboards:
+        enabled: false
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi

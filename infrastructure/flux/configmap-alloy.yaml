@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-values-poc
+  namespace: lgtm-poc
+data:
+  values.yaml: |
+    alloy:
+      extraPorts:
+        - name: otlp-grpc
+          port: 4317
+          targetPort: 4317
+          protocol: TCP
+        - name: otlp-http
+          port: 4318
+          targetPort: 4318
+          protocol: TCP
+      configMap:
+        create: true
+        content: |
+          otelcol.receiver.otlp "default" {
+            grpc {
+              endpoint = "0.0.0.0:4317"
+            }
+            http {
+              endpoint = "0.0.0.0:4318"
+            }
+            output {
+              traces  = [otelcol.exporter.otlphttp.tempo.input]
+            }
+          }
+          otelcol.exporter.otlphttp "tempo" {
+            client {
+              endpoint = "http://tempo-poc.lgtm-poc.svc:4318"
+              tls {
+                insecure = true
+              }
+            }
+          }
+    service:
+      type: ClusterIP
+    controller:
+      type: deployment
+      replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+    serviceAccount:
+      create: true
+    rbac:
+      create: true
