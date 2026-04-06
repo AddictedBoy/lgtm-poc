@@ -41,24 +41,6 @@ alloy:
         }
       }
 
-      // ============================================
-      // Metrics -> Mimir (observability)
-      // ============================================
-      prometheus.scrape "sample_traces_app" {
-        targets = [{
-          __address__ = "sample-traces-app.lgtm-poc.svc:8081",
-          job         = "sample-traces-app",
-        }]
-        forward_to = [prometheus.remote_write.mimir.receiver]
-        scrape_interval = "15s"
-      }
-
-      prometheus.remote_write "mimir" {
-        endpoint {
-          url = "http://lgtm-stack-mimir-gateway.observability.svc:80/api/v1/push"
-        }
-      }
-
 # Service for receiving OTLP data
 service:
   type: ClusterIP

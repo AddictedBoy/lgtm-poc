@@ -9,29 +9,16 @@ data:
     server:
       http_listen_port: 3200
       grpc_listen_port: 9096
-    tempo:
-      metricsGenerator:
-        enabled: true
-        remoteWriteUrl: "http://lgtm-stack-mimir-gateway.observability.svc:80/api/v1/push"
-        processor:
-          service_graphs:
-            wait: 10s
-          span_metrics:
-            enable_target_info: true
-        storage:
-          path: /var/tempo/metrics
-      storage:
-        trace:
-          backend: local
-          local:
-            path: /var/tempo/traces
-      overrides:
-        defaults:
-          metrics_generator:
-            processors:
-              - service-graphs
-              - span-metrics
-            max_active_series: 10000
+    ingester:
+      flush_check_period: 10s
+      flush_on_shutdown: true
+      max_block_duration: 30s
+      trace_idle_period: 10s
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo/traces
     distributor:
       receivers:
         jaeger:
