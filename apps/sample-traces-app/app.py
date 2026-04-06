@@ -10,6 +10,7 @@ import time
 import random
 import logging
 import json
+import threading
 
 from flask import Flask, jsonify, request
 import psycopg2
@@ -55,6 +56,9 @@ def get_db_connection():
 
 @app.route("/health")
 def health():
+    with tracer.start_as_current_span("health-check", kind=SpanKind.SERVER) as span:
+        span.set_attribute("http.method", "GET")
+        span.set_attribute("http.route", "/health")
     return jsonify({"status": "ok"})
 
 @app.route("/generate-error")
@@ -121,6 +125,29 @@ def order():
             logger.error(f"Error processing order: {e}")
             return jsonify({"error": str(e)}), 500
 
+def generate_periodic_traces():
+    while True:
+        try:
+            with tracer.start_as_current_span("periodic-health-check", kind=SpanKind.SERVER) as span:
+                span.set_attribute("http.method", "GET")
+                span.set_attribute("http.route", "/health")
+                span.set_attribute("periodic", "true")
+            
+            with tracer.start_as_current_span("periodic-order", kind=SpanKind.SERVER) as span:
+                span.set_attribute("http.method", "GET")
+                span.set_attribute("http.route", "/order")
+                span.set_attribute("periodic", "true")
+                span.set_attribute("db.system", "postgresql")
+                span.set_attribute("db.operation", "INSERT")
+                
+        except Exception as e:
+            logger.error(f"Error generating periodic traces: {e}")
+        
+        time.sleep(60)
+
 if __name__ == "__main__":
+    trace_thread = threading.Thread(target=generate_periodic_traces, daemon=True)
+    trace_thread.start()
+    
     port = int(os.environ.get("PORT", 8081))
     app.run(host="0.0.0.0", port=port)
