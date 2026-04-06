@@ -6,3 +6,14 @@ resources:
   - values/tempo-values.yaml
   - values/grafana-values.yaml
   - ../dashboards/
+
+configMapGenerator:
+  - name: tempo-values-poc
+    files:
+      - values.yaml=values/tempo-values.yaml
+  - name: alloy-values-poc
+    files:
+      - values.yaml=values/alloy-values.yaml
+  - name: grafana-values-poc
+    files:
+      - values.yaml=values/grafana-values.yaml
