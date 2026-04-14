@@ -56,17 +56,15 @@ tasks:
         echo "Starting port forwards for lgtm-poc..."
         echo ""
         echo "Grafana:           http://localhost:3000"
-        echo "sample-logs-app:   http://localhost:8091"
         echo "sample-traces-app: http://localhost:8081"
-        echo "sample-metrics-app: http://localhost:8090"
+        echo "Tempo:             http://localhost:3200"
         echo ""
         echo "Username: admin"
         echo "Password: admin123"
         
-        kubectl port-forward -n {{.NAMESPACE}} svc/grafana 3000:80 &
-        kubectl port-forward -n {{.NAMESPACE}} svc/sample-logs-app 8091:8091 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/grafana-poc 3000:80 &
         kubectl port-forward -n {{.NAMESPACE}} svc/sample-traces-app 8081:8081 &
-        kubectl port-forward -n {{.NAMESPACE}} svc/sample-metrics-app 8090:8090 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/tempo-poc 3200:3200 &
         
         wait
 
@@ -77,17 +75,13 @@ tasks:
         echo "Starting port forwards..."
         echo ""
         echo "Grafana:           http://localhost:3000"
-        echo "sample-logs-app:   http://localhost:8091"
         echo "sample-traces-app: http://localhost:8081"
-        echo "sample-metrics-app: http://localhost:8090"
         echo ""
         echo "Username: admin"
         echo "Password: admin123"
         
-        kubectl port-forward -n {{.NAMESPACE}} svc/grafana 3000:80 &
-        kubectl port-forward -n {{.NAMESPACE}} svc/sample-logs-app 8091:8091 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/grafana-poc 3000:80 &
         kubectl port-forward -n {{.NAMESPACE}} svc/sample-traces-app 8081:8081 &
-        kubectl port-forward -n {{.NAMESPACE}} svc/sample-metrics-app 8090:8090 &
         
         wait
 
@@ -106,7 +100,7 @@ tasks:
       - |
         echo "Starting Tempo port forward..."
         echo "Tempo: http://localhost:3200"
-        kubectl port-forward -n {{.NAMESPACE}} svc/tempo 3200:3200
+        kubectl port-forward -n {{.NAMESPACE}} svc/tempo-poc 3200:3200
         wait
 
   mimir:
