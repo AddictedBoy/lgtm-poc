@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: lgtm-poc
+  labels:
+    grafana_datasource: "1"
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://tempo-poc.lgtm-poc.svc:3200
+        isDefault: false
+        version: 1
+        editable: true
+      - name: Mimir
+        type: prometheus
+        access: proxy
+        url: http://lgtm-stack-mimir-gateway.lgtm-poc.svc:8080/prometheus
+        isDefault: true
+        version: 1
+        editable: true

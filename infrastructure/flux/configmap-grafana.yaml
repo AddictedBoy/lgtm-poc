@@ -21,9 +21,12 @@ data:
       enabled: false
     sidecar:
       datasources:
-        enabled: false
+        enabled: true
+        defaultDatasourceEnabled: false
       dashboards:
-        enabled: false
+        enabled: true
+        folder: /tmp/dashboards
+        searchNamespace: lgtm-poc
     resources:
       requests:
         cpu: 50m

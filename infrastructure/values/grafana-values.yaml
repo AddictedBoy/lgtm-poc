@@ -21,12 +21,15 @@ initChown:
 persistence:
   enabled: false
 
-# Disable default datasources from helm chart
+# Enable sidecar for dashboards and datasources from ConfigMaps
 sidecar:
   datasources:
-    enabled: false
+    enabled: true
+    defaultDatasourceEnabled: false
   dashboards:
-    enabled: false
+    enabled: true
+    folder: /tmp/dashboards
+    searchNamespace: lgtm-poc
 
 # Resources
 resources:
