@@ -14,19 +14,15 @@ data:
       type: NodePort
       port: 80
       targetPort: 3000
-      nodePort: 3000
     initChown:
       enabled: false
     persistence:
       enabled: false
     sidecar:
       datasources:
-        enabled: true
-        defaultDatasourceEnabled: false
+        enabled: false
       dashboards:
-        enabled: true
-        folder: /tmp/dashboards
-        searchNamespace: lgtm-poc
+        enabled: false
     resources:
       requests:
         cpu: 50m

@@ -62,7 +62,7 @@ tasks:
         echo "Username: admin"
         echo "Password: admin123"
         
-        kubectl port-forward -n {{.NAMESPACE}} svc/grafana-poc 3000:80 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/grafana 3000:80 &
         kubectl port-forward -n {{.NAMESPACE}} svc/sample-traces-app 8081:8081 &
         kubectl port-forward -n {{.NAMESPACE}} svc/tempo-poc 3200:3200 &
         
@@ -80,7 +80,7 @@ tasks:
         echo "Username: admin"
         echo "Password: admin123"
         
-        kubectl port-forward -n {{.NAMESPACE}} svc/grafana-poc 3000:80 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/grafana 3000:80 &
         kubectl port-forward -n {{.NAMESPACE}} svc/sample-traces-app 8081:8081 &
         
         wait

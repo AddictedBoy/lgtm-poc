@@ -12,7 +12,6 @@ service:
   type: NodePort
   port: 80
   targetPort: 3000
-  nodePort: 3000
 
 # Using init container to create provisioning files
 initChown:
@@ -21,15 +20,12 @@ initChown:
 persistence:
   enabled: false
 
-# Enable sidecar for dashboards and datasources from ConfigMaps
+# Disable sidecar for dashboards (not available in air-gapped)
 sidecar:
   datasources:
-    enabled: true
-    defaultDatasourceEnabled: false
+    enabled: false
   dashboards:
-    enabled: true
-    folder: /tmp/dashboards
-    searchNamespace: lgtm-poc
+    enabled: false
 
 # Resources
 resources:
