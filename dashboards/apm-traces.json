@@ -416,12 +416,12 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "expr": "sum(rate(tempo_query_frontend_queries_total[5m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{container=\"querier\"}[5m]))",
           "legendFormat": "Query Rate",
           "refId": "A"
         }
       ],
-      "title": "Dashboard Query Rate (Refresh Cost)",
+      "title": "Tempo CPU Usage",
       "type": "timeseries"
     },
     {
@@ -468,12 +468,12 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum(rate(tempo_query_frontend_query_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(container_cpu_usage_seconds_total{container=\"querier\"}[5m])) by (le))",
           "legendFormat": "p99",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.50, sum(rate(tempo_query_frontend_query_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(container_cpu_usage_seconds_total{container=\"querier\"}[5m])) by (le))",
           "legendFormat": "p50",
           "refId": "B"
         }
@@ -512,12 +512,12 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "expr": "sum(rate(tempo_query_frontend_queries_failed_total[5m])) / sum(rate(tempo_query_frontend_queries_total[5m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\"}[5m]))",
           "legendFormat": "Failure Rate",
           "refId": "A"
         }
       ],
-      "title": "Query Failure Rate",
+      "title": "Total CPU Usage",
       "type": "stat"
     },
     {
@@ -534,7 +534,7 @@
               {"color": "red", "value": 0.8}
             ]
           },
-          "unit": "percentunit"
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -551,12 +551,12 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "expr": "sum(rate(tempo_distributor_replicas_found_total[5m])) / sum(rate(tempo_distributor_replicas_found_total[5m]))",
-          "legendFormat": "Replica Found Rate",
+          "expr": "sum(container_memory_working_set_bytes{container!=\"\"})",
+          "legendFormat": "Memory Used",
           "refId": "A"
         }
       ],
-      "title": "Replica Discovery Rate",
+      "title": "Memory Usage",
       "type": "stat"
     }
   ],
