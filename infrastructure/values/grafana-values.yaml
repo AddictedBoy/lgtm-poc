@@ -9,9 +9,10 @@ featureToggles:
   exploreHints: true
 
 service:
-  type: ClusterIP
+  type: NodePort
   port: 80
   targetPort: 3000
+  nodePort: 30000
 
 # Using init container to create provisioning files
 initChown:
