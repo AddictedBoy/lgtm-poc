@@ -12,7 +12,7 @@ service:
   type: NodePort
   port: 80
   targetPort: 3000
-  nodePort: 30000
+  nodePort: 3000
 
 # Using init container to create provisioning files
 initChown:
