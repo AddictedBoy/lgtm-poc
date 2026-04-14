@@ -11,6 +11,11 @@ storage:
     local:
       path: /var/tempo/traces
 distributor:
+  usage:
+    cost_attribution:
+      enabled: true
+      max_cardinality: 10000
+      stale_duration: 15m0s
   receivers:
     jaeger:
       protocols:
@@ -44,3 +49,8 @@ query_frontend:
   traceql:
     metrics:
       enabled: true
+overrides:
+  defaults:
+    cost_attribution:
+      dimensions:
+        service.name: ""
