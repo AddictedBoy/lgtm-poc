@@ -1,0 +1,249 @@
+version: "3"
+
+vars:
+  NAMESPACE: lgtm-poc
+  FLUX_NAMESPACE: flux-system
+
+tasks:
+  up:
+    desc: Deploy LGTM stack
+    cmds:
+      - helm repo add grafana https://grafana.github.io/helm-charts --force-update
+      - helm repo update
+      - kubectl create namespace {{.NAMESPACE}} --dry-run=client -o yaml | kubectl apply -f -
+      - helm upgrade --install mimir grafana/mimir-distributed -n {{.NAMESPACE}} -f values-mimir.yaml --wait --timeout 10m
+      - helm upgrade --install loki grafana/loki -n {{.NAMESPACE}} -f values-loki.yaml --wait --timeout 5m
+      - helm upgrade --install tempo grafana/tempo -n {{.NAMESPACE}} -f values-tempo.yaml --wait --timeout 5m
+      - helm upgrade --install grafana grafana/grafana -n {{.NAMESPACE}} -f values-grafana.yaml --wait --timeout 5m
+      - helm upgrade --install alloy grafana/alloy -n {{.NAMESPACE}} -f values-alloy.yaml --wait --timeout 5m
+      - |
+        echo "✅ LGTM Stack deployed!"
+        echo ""
+        echo "Grafana: http://grafana.192-168-49-2.nip.io"
+        echo "Username: admin"
+        echo "Password: $(kubectl get secret grafana -n {{.NAMESPACE}} -o jsonpath="{.data.admin-password}" | base64 --decode)"
+
+  down:
+    desc: Remove LGTM stack
+    cmds:
+      - helm uninstall alloy -n {{.NAMESPACE}} || true
+      - kubectl delete -f apps/sample-logs-app/k8s.yaml --ignore-not-found=true || true
+      - kubectl delete -f apps/sample-traces-app/k8s.yaml --ignore-not-found=true || true
+      - kubectl delete -f apps/sample-postgres/k8s.yaml --ignore-not-found=true || true
+      - kubectl delete -f apps/sample-redis/k8s.yaml --ignore-not-found=true || true
+      - helm uninstall grafana -n {{.NAMESPACE}} || true
+      - helm uninstall tempo -n {{.NAMESPACE}} || true
+      - helm uninstall loki -n {{.NAMESPACE}} || true
+      - helm uninstall mimir -n {{.NAMESPACE}} || true
+      - kubectl delete namespace {{.NAMESPACE}} --ignore-not-found=true
+      - echo "✅ LGTM stack removed"
+
+  status:
+    desc: Show FluxCD status
+    cmds:
+      - flux get all --all-namespaces
+
+  sync:
+    desc: Force sync with GitHub
+    cmds:
+      - flux reconcile source git flux-system --with-source
+      - flux reconcile kustomization flux-system --with-source
+
+  lgtm-poc:
+    desc: Port forward Grafana and sample apps for lgtm-poc
+    cmds:
+      - |
+        echo "Starting port forwards for lgtm-poc..."
+        echo ""
+        echo "Grafana:           http://localhost:3000"
+        echo "sample-logs-app:   http://localhost:8091"
+        echo "sample-traces-app: http://localhost:8081"
+        echo "sample-metrics-app: http://localhost:8090"
+        echo ""
+        echo "Username: admin"
+        echo "Password: admin123"
+        
+        kubectl port-forward -n {{.NAMESPACE}} svc/grafana 3000:80 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/sample-logs-app 8091:8091 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/sample-traces-app 8081:8081 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/sample-metrics-app 8090:8090 &
+        
+        wait
+
+  grafana:
+    desc: Port forward Grafana and sample apps
+    cmds:
+      - |
+        echo "Starting port forwards..."
+        echo ""
+        echo "Grafana:           http://localhost:3000"
+        echo "sample-logs-app:   http://localhost:8091"
+        echo "sample-traces-app: http://localhost:8081"
+        echo "sample-metrics-app: http://localhost:8090"
+        echo ""
+        echo "Username: admin"
+        echo "Password: admin123"
+        
+        kubectl port-forward -n {{.NAMESPACE}} svc/grafana 3000:80 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/sample-logs-app 8091:8091 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/sample-traces-app 8081:8081 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/sample-metrics-app 8090:8090 &
+        
+        wait
+
+  loki:
+    desc: Port forward Loki (logs)
+    cmds:
+      - |
+        echo "Starting Loki port forward..."
+        echo "Loki: http://localhost:3100"
+        kubectl port-forward -n {{.NAMESPACE}} svc/loki-gateway 3100:80
+        wait
+
+  tempo:
+    desc: Port forward Tempo (traces)
+    cmds:
+      - |
+        echo "Starting Tempo port forward..."
+        echo "Tempo: http://localhost:3200"
+        kubectl port-forward -n {{.NAMESPACE}} svc/tempo 3200:3200
+        wait
+
+  mimir:
+    desc: Port forward Mimir (metrics)
+    cmds:
+      - |
+        echo "Starting Mimir port forward..."
+        echo "Mimir: http://localhost:8080"
+        kubectl port-forward -n {{.NAMESPACE}} svc/lgtm-stack-mimir-gateway 8080:80
+        wait
+
+  databases:
+    desc: Port forward Postgres and Redis
+    cmds:
+      - |
+        echo "Starting database port forwards..."
+        echo "Postgres: localhost:5432"
+        echo "Redis: localhost:6379"
+        
+        kubectl port-forward -n {{.NAMESPACE}} svc/postgres 5432:5432 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/redis 6379:6379 &
+        
+        wait
+
+  alloy:
+    desc: Port forward Alloy (OTLP receiver)
+    cmds:
+      - |
+        echo "Starting Alloy port forwards..."
+        echo "OTLP gRPC: localhost:4317"
+        echo "OTLP HTTP: localhost:4318"
+        echo "Agent: localhost:12345"
+        
+        kubectl port-forward -n {{.NAMESPACE}} svc/alloy 4317:4317 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/alloy 4318:4318 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/alloy 12345:12345 &
+        
+        wait
+
+  all-services:
+    desc: Port forward all services
+    cmds:
+      - |
+        echo "Starting all service port forwards..."
+        echo ""
+        echo "Grafana:           http://localhost:3000"
+        echo "Loki:              http://localhost:3100"
+        echo "Tempo:             http://localhost:3200"
+        echo "Mimir:             http://localhost:8080"
+        echo "Alloy gRPC:        localhost:4317"
+        echo "Alloy HTTP:        localhost:4318"
+        echo "Alloy Agent:       localhost:12345"
+        echo "sample-logs-app:   http://localhost:8091"
+        echo "sample-traces-app: http://localhost:8081"
+        echo "sample-metrics-app: http://localhost:8090"
+        echo "Postgres:          localhost:5432"
+        echo "Redis:             localhost:6379"
+        echo ""
+        echo "Username: admin"
+        echo "Password: admin123"
+        
+        kubectl port-forward -n {{.NAMESPACE}} svc/grafana 3000:80 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/loki-gateway 3100:80 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/tempo 3200:3200 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/lgtm-stack-mimir-gateway 8080:80 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/alloy 4317:4317 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/alloy 4318:4318 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/alloy 12345:12345 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/sample-logs-app 8091:8091 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/sample-traces-app 8081:8081 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/sample-metrics-app 8090:8090 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/postgres 5432:5432 &
+        kubectl port-forward -n {{.NAMESPACE}} svc/redis 6379:6379 &
+        
+        wait
+
+  verify:
+    desc: Verify data ingestion in Mimir and Loki
+    cmds:
+      - |
+        echo "=== Verifying LGTM Stack ==="
+        echo ""
+        
+        # Start port forwards in background
+        kubectl port-forward -n {{.NAMESPACE}} svc/lgtm-stack-mimir-gateway 8080:80 &
+        MIMIR_PID=$!
+        kubectl port-forward -n {{.NAMESPACE}} svc/loki-gateway 3100:80 &
+        LOKI_PID=$!
+        
+        sleep 3
+        
+        # Test Mimir (Metrics)
+        echo "📊 Checking Mimir (Metrics)..."
+        MIMIR_RESULT=$(curl -s "http://localhost:8080/prometheus/api/v1/query?query=up" | jq -r '.data.result[0].value[1]' 2>/dev/null)
+        if [ "$MIMIR_RESULT" = "1" ]; then
+          echo "  ✅ Mimir: Receiving metrics"
+        else
+          echo "  ❌ Mimir: No metrics found"
+        fi
+        
+        # Test Loki (Logs)
+        echo ""
+        echo "📝 Checking Loki (Logs)..."
+        LOKI_RESULT=$(curl -s -G "http://localhost:3100/loki/api/v1/query_range" --data-urlencode 'query={app="sample-logs-app"}' --data-urlencode 'limit=1' | jq '.data.result | length' 2>/dev/null)
+        if [ "$LOKI_RESULT" -gt "0" ]; then
+          echo "  ✅ Loki: Receiving logs"
+        else
+          echo "  ❌ Loki: No logs found"
+        fi
+        
+        # Test Tempo (Traces)
+        echo ""
+        echo "🔍 Checking Tempo (Traces)..."
+        TEMPO_RESULT=$(curl -s "http://localhost:3200/api/echo" 2>/dev/null)
+        if echo "$TEMPO_RESULT" | grep -q "OK"; then
+          echo "  ✅ Tempo: Service available"
+        else
+          echo "  ❌ Tempo: Not responding"
+        fi
+        
+        # Cleanup
+        kill $MIMIR_PID $LOKI_PID 2>/dev/null
+        
+        echo ""
+        echo "=== Verification Complete ==="
+
+  pods:
+    desc: List all pods in lgtm-poc namespace
+    cmds:
+      - kubectl get pods -n {{.NAMESPACE}}
+
+  logs:
+    desc: Tail logs from sample-logs-app
+    cmds:
+      - kubectl logs -n {{.NAMESPACE}} -l app=sample-logs-app -f
+
+  flux-logs:
+    desc: Show FluxCD logs
+    cmds:
+      - flux logs --level=info --tail=50
