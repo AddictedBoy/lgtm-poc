@@ -22,9 +22,8 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 service_name = os.environ.get("OTEL_SERVICE_NAME", "sample-traces-app")
-otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", 
-                      os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", 
-                      "http://tempo-poc.lgtm-poc.svc:4318"))
+# Support multiple OTEL env vars for backward compatibility
+otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT") or os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT") or "http://tempo-poc.lgtm-poc.svc:4318"
 
 redis_host = os.environ.get("REDIS_HOST", "redis.observability.svc")
 redis_port = int(os.environ.get("REDIS_PORT", "6379"))

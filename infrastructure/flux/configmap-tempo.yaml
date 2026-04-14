@@ -18,11 +18,7 @@ data:
         local:
           path: /var/tempo/traces
     metricsGenerator:
-      enabled: true
-      processor:
-        service_graphs:
-          wait: 10s
-      remoteWriteUrl: ""
+      enabled: false
     distributor:
       usage:
         cost_attribution:
@@ -64,9 +60,6 @@ data:
           enabled: true
     overrides:
       defaults:
-        metrics_generator:
-          processors:
-            - service-graphs
         cost_attribution:
           dimensions:
             service.name: ""
