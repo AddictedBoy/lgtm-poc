@@ -53,6 +53,7 @@ tasks:
     desc: Port forward Grafana and sample apps for lgtm-poc
     cmds:
       - |
+        PASSWORD=$(kubectl get secret grafana -n {{.NAMESPACE}} -o jsonpath="{.data.admin-password}" | base64 -d)
         echo "Starting port forwards for lgtm-poc..."
         echo ""
         echo "Grafana:           http://localhost:3000"
@@ -60,7 +61,7 @@ tasks:
         echo "Tempo:             http://localhost:3200"
         echo ""
         echo "Username: admin"
-        echo "Password: admin123"
+        echo "Password: $PASSWORD"
         
         kubectl port-forward -n {{.NAMESPACE}} svc/grafana 3000:80 &
         kubectl port-forward -n {{.NAMESPACE}} svc/sample-traces-app 8081:8081 &
